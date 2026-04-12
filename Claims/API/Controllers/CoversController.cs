@@ -1,5 +1,6 @@
 using Claims.Application.Interfaces;
 using Claims.Domain.Entities;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Claims.API.Controllers;
@@ -10,11 +11,13 @@ public class CoversController : ControllerBase
 {
     private readonly ILogger<CoversController> _logger;
     private readonly ICoversService _coversService;
+    private readonly IValidator<Cover> _validator;
 
-    public CoversController(ILogger<CoversController> logger, ICoversService coversService)
+    public CoversController(ILogger<CoversController> logger, ICoversService coversService, IValidator<Cover> validator)
     {
         _logger = logger;
         _coversService = coversService;
+        _validator = validator;
     }
 
     [HttpPost("compute")]
@@ -46,6 +49,11 @@ public class CoversController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<Cover>> CreateAsync(Cover cover, CancellationToken cancellationToken)
     {
+        var validationResult = await _validator.ValidateAsync(cover, cancellationToken);
+        if (!validationResult.IsValid)
+        {
+            return BadRequest(validationResult.Errors);
+        }
         cover = await _coversService.CreateCoverAsync(cover, cancellationToken);
         return Ok(cover);
     }

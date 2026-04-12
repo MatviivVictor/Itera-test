@@ -1,5 +1,6 @@
 using Claims.Application.Interfaces;
 using Claims.Domain.Entities;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Claims.API.Controllers
@@ -10,11 +11,13 @@ namespace Claims.API.Controllers
     {
         private readonly ILogger<ClaimsController> _logger;
         private readonly IClaimsService _claimsService;
+        private readonly IValidator<Claim> _validator;
 
-        public ClaimsController(ILogger<ClaimsController> logger, IClaimsService claimsService)
+        public ClaimsController(ILogger<ClaimsController> logger, IClaimsService claimsService, IValidator<Claim> validator)
         {
             _logger = logger;
             _claimsService = claimsService;
+            _validator = validator;
         }
 
         /// <summary>
@@ -38,6 +41,11 @@ namespace Claims.API.Controllers
         [HttpPost]
         public async Task<ActionResult<Claim>> CreateAsync(Claim claim, CancellationToken cancellationToken)
         {
+            var validationResult = await _validator.ValidateAsync(claim, cancellationToken);
+            if (!validationResult.IsValid)
+            {
+                return BadRequest(validationResult.Errors);
+            }
             claim = await _claimsService.CreateClaimAsync(claim, "POST", cancellationToken);
             return Ok(claim);
         }
