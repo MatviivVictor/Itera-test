@@ -1,4 +1,5 @@
 using Claims.Application.Interfaces;
+using Claims.Application.Models;
 using Claims.Domain.Entities;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
@@ -11,14 +12,11 @@ namespace Claims.API.Controllers
     {
         private readonly ILogger<ClaimsController> _logger;
         private readonly IClaimsService _claimsService;
-        private readonly IValidator<Claim> _validator;
 
-        public ClaimsController(ILogger<ClaimsController> logger, IClaimsService claimsService,
-            IValidator<Claim> validator)
+        public ClaimsController(ILogger<ClaimsController> logger, IClaimsService claimsService)
         {
             _logger = logger;
             _claimsService = claimsService;
-            _validator = validator;
         }
 
         /// <summary>
@@ -40,9 +38,9 @@ namespace Claims.API.Controllers
         /// <param name="cancellationToken">A token to cancel the operation if needed.</param>
         /// <returns>A task representing the asynchronous operation. The task result contains an action result wrapping the created Claim object.</returns>
         [HttpPost]
-        public async Task<ActionResult<Claim>> CreateAsync([FromBody] Claim claim, CancellationToken cancellationToken)
+        public async Task<ActionResult<Claim>> CreateAsync([FromBody] CreateClaimRequestModel model, CancellationToken cancellationToken)
         {
-            claim = await _claimsService.CreateClaimAsync(claim, "POST", cancellationToken);
+            var claim = await _claimsService.CreateClaimAsync(model, "POST", cancellationToken);
             return Ok(claim);
         }
 

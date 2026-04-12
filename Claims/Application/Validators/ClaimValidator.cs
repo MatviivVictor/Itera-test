@@ -1,27 +1,11 @@
-using FluentValidation;
 using Claims.Domain.Entities;
+using FluentValidation;
 
 namespace Claims.Application.Validators;
 
 public class ClaimValidator : AbstractValidator<Claim>
 {
-    public ClaimValidator()
-    {
-        RuleFor(x => x.CoverId)
-            .NotEmpty()
-            .WithMessage("CoverId is required.");
-
-        RuleFor(x => x.Type).IsInEnum().WithMessage("Invalid claim type.");
-
-        RuleFor(x => x.DamageCost)
-            .LessThanOrEqualTo(100000)
-            .WithMessage("Damage cost cannot exceed 100,000.");
-    }
-}
-
-public class ClaimCreatedValidation : AbstractValidator<Claim>
-{
-    public ClaimCreatedValidation(Cover? cover = null)
+    public ClaimValidator(Cover? cover = null)
     {
         var cover1 = cover;
         

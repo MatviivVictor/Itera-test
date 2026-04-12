@@ -43,7 +43,19 @@ builder.Services
     });
 
 builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+// Auto-validation 
+builder.Services.AddValidatorsFromAssemblyContaining<Program>(
+    ServiceLifetime.Scoped,
+    filter =>
+        filter.ValidatorType.Namespace != null &&
+        filter.ValidatorType.Namespace.StartsWith("Claims.API.Validators"));
+
+// manual validation
+builder.Services.AddValidatorsFromAssemblyContaining<Claims.Application.Validators.ClaimValidator>(
+    ServiceLifetime.Scoped,
+    filter =>
+        filter.ValidatorType.Namespace != null &&
+        filter.ValidatorType.Namespace.StartsWith("Claims.Application.Validators"));
 
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();

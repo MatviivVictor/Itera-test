@@ -1,24 +1,24 @@
 using Claims.Application.Validators;
-using Claims.Domain.Entities;
+using Claims.Application.Models;
 using FluentValidation.TestHelper;
 using Xunit;
 
 namespace Claims.Tests;
 
-public class CoverValidatorTests
+public class CreateCoverRequestModelValidatorTests
 {
-    private readonly CoverValidator _validator;
+    private readonly CreateCoverRequestModelValidator _validator;
 
-    public CoverValidatorTests()
+    public CreateCoverRequestModelValidatorTests()
     {
-        _validator = new CoverValidator();
+        _validator = new CreateCoverRequestModelValidator();
     }
 
     [Fact]
     public void Should_Have_Error_When_StartDate_Is_In_Past()
     {
-        var cover = new Cover { StartDate = DateTime.Today.AddDays(-1) };
-        var result = _validator.TestValidate(cover);
+        var model = new CreateCoverRequestModel { StartDate = DateTime.Today.AddDays(-1) };
+        var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x.StartDate)
             .WithErrorMessage("Start date cannot be in the past.");
     }
@@ -26,20 +26,20 @@ public class CoverValidatorTests
     [Fact]
     public void Should_Not_Have_Error_When_StartDate_Is_Today()
     {
-        var cover = new Cover { StartDate = DateTime.Today, EndDate = DateTime.Today.AddDays(10) };
-        var result = _validator.TestValidate(cover);
+        var model = new CreateCoverRequestModel { StartDate = DateTime.Today, EndDate = DateTime.Today.AddDays(10) };
+        var result = _validator.TestValidate(model);
         result.ShouldNotHaveValidationErrorFor(x => x.StartDate);
     }
 
     [Fact]
     public void Should_Have_Error_When_Insurance_Period_Exceeds_1_Year()
     {
-        var cover = new Cover 
+        var model = new CreateCoverRequestModel 
         { 
             StartDate = DateTime.Today, 
             EndDate = DateTime.Today.AddDays(367) 
         };
-        var result = _validator.TestValidate(cover);
+        var result = _validator.TestValidate(model);
         result.ShouldHaveValidationErrorFor(x => x)
             .WithErrorMessage("Total insurance period cannot exceed 1 year.");
     }
@@ -47,12 +47,12 @@ public class CoverValidatorTests
     [Fact]
     public void Should_Not_Have_Error_When_Insurance_Period_Is_Exactly_1_Year()
     {
-        var cover = new Cover 
+        var model = new CreateCoverRequestModel 
         { 
             StartDate = DateTime.Today, 
             EndDate = DateTime.Today.AddDays(365) 
         };
-        var result = _validator.TestValidate(cover);
+        var result = _validator.TestValidate(model);
         result.ShouldNotHaveAnyValidationErrors();
     }
 }

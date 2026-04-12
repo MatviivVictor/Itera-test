@@ -1,11 +1,11 @@
+using Claims.Application.Models;
 using FluentValidation;
-using Claims.Domain.Entities;
 
 namespace Claims.Application.Validators;
 
-public class CoverValidator : AbstractValidator<Cover>
+public class CreateCoverRequestModelValidator : AbstractValidator<CreateCoverRequestModel>
 {
-    public CoverValidator()
+    public CreateCoverRequestModelValidator()
     {
         RuleFor(x => x.StartDate)
             .GreaterThanOrEqualTo(DateTime.Today)
