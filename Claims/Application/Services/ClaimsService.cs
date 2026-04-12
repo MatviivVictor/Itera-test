@@ -1,18 +1,22 @@
 using Claims.Application.Interfaces;
+using Claims.Application.Validators;
 using Claims.Domain.Entities;
 using Claims.Domain.Interfaces;
+using FluentValidation;
 
 namespace Claims.Application.Services;
 
 public class ClaimsService : IClaimsService
 {
     private readonly IClaimsRepository _claimsRepository;
+    private readonly ICoversRepository _coversRepository;
     private readonly IAuditer _auditer;
 
-    public ClaimsService(IClaimsRepository claimsRepository, IAuditer auditer)
+    public ClaimsService(IClaimsRepository claimsRepository, IAuditer auditer, ICoversRepository coversRepository)
     {
         _claimsRepository = claimsRepository;
         _auditer = auditer;
+        _coversRepository = coversRepository;
     }
 
     public Task<List<Claim>> GetClaimsAsync(CancellationToken cancellationToken)
@@ -23,6 +27,13 @@ public class ClaimsService : IClaimsService
     public async Task<Claim> CreateClaimAsync(Claim claim, string post, CancellationToken cancellationToken)
     {
         claim.Id = Guid.CreateVersion7().ToString();
+        var cover = await _coversRepository.GetCoverAsync(claim.CoverId, cancellationToken);
+        var validator = new ClaimCreatedValidation(cover);
+        var validatorResult = validator.Validate(claim);
+        if (!validatorResult.IsValid)
+        {
+            throw new ValidationException(validatorResult.Errors);
+        }
         await _claimsRepository.AddItemAsync(claim, cancellationToken);
         await _auditer.AuditClaim(claim.Id, "POST", cancellationToken);
         return claim;

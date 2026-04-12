@@ -13,7 +13,8 @@ namespace Claims.API.Controllers
         private readonly IClaimsService _claimsService;
         private readonly IValidator<Claim> _validator;
 
-        public ClaimsController(ILogger<ClaimsController> logger, IClaimsService claimsService, IValidator<Claim> validator)
+        public ClaimsController(ILogger<ClaimsController> logger, IClaimsService claimsService,
+            IValidator<Claim> validator)
         {
             _logger = logger;
             _claimsService = claimsService;
@@ -39,13 +40,8 @@ namespace Claims.API.Controllers
         /// <param name="cancellationToken">A token to cancel the operation if needed.</param>
         /// <returns>A task representing the asynchronous operation. The task result contains an action result wrapping the created Claim object.</returns>
         [HttpPost]
-        public async Task<ActionResult<Claim>> CreateAsync(Claim claim, CancellationToken cancellationToken)
+        public async Task<ActionResult<Claim>> CreateAsync([FromBody] Claim claim, CancellationToken cancellationToken)
         {
-            var validationResult = await _validator.ValidateAsync(claim, cancellationToken);
-            if (!validationResult.IsValid)
-            {
-                return BadRequest(validationResult.Errors);
-            }
             claim = await _claimsService.CreateClaimAsync(claim, "POST", cancellationToken);
             return Ok(claim);
         }
@@ -57,7 +53,7 @@ namespace Claims.API.Controllers
         /// <param name="cancellationToken">A token to cancel the operation if needed.</param>
         /// <returns>A task representing the asynchronous operation. The task result contains an action result indicating success or failure of the deletion.</returns>
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAsync(string id, CancellationToken cancellationToken)
+        public async Task<IActionResult> DeleteAsync([FromRoute] string id, CancellationToken cancellationToken)
         {
             await _claimsService.RemoveClaimAsync(id, cancellationToken);
             return Ok();
@@ -70,7 +66,7 @@ namespace Claims.API.Controllers
         /// <param name="cancellationToken">A token to cancel the operation if needed.</param>
         /// <returns>A task representing the asynchronous operation. The task result contains an action result wrapping the Claim object if found, or a NotFound result otherwise.</returns>
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetAsync(string id, CancellationToken cancellationToken)
+        public async Task<IActionResult> GetAsync([FromRoute] string id, CancellationToken cancellationToken)
         {
             var claim = await _claimsService.GetClaimAsync(id, cancellationToken);
             if (claim is not null)

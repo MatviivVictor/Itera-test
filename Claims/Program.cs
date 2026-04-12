@@ -13,6 +13,7 @@ using Claims.Domain.Interfaces;
 using Claims.Infrastructure.Auditing;
 using Claims.Infrastructure.Database;
 using Claims.Infrastructure.Repositories;
+using Claims.API.Middleware;
 using Testcontainers.MongoDb;
 using Testcontainers.MsSql;
 
@@ -43,6 +44,9 @@ builder.Services
 
 builder.Services.AddFluentValidationAutoValidation();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Services.AddDbContext<AuditContext>(options =>
     options.UseSqlServer(sqlContainer.GetConnectionString()));
@@ -81,6 +85,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseExceptionHandler();
 
 app.UseHttpsRedirection();
 
