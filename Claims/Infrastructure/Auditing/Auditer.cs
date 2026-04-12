@@ -1,6 +1,10 @@
-﻿namespace Claims.Auditing
+﻿using Claims.Auditing;
+using Claims.Domain.Interfaces;
+using Claims.Infrastructure.Database;
+
+namespace Claims.Infrastructure.Auditing
 {
-    public class Auditer
+    public class Auditer: IAuditer
     {
         private readonly AuditContext _auditContext;
 
@@ -9,7 +13,7 @@
             _auditContext = auditContext;
         }
 
-        public void AuditClaim(string id, string httpRequestType)
+        public Task AuditClaim(string id, string httpRequestType, CancellationToken cancellationToken )
         {
             var claimAudit = new ClaimAudit()
             {
@@ -19,10 +23,10 @@
             };
 
             _auditContext.Add(claimAudit);
-            _auditContext.SaveChanges();
+            return _auditContext.SaveChangesAsync(cancellationToken);
         }
         
-        public void AuditCover(string id, string httpRequestType)
+        public Task AuditCover(string id, string httpRequestType, CancellationToken cancellationToken)
         {
             var coverAudit = new CoverAudit()
             {
@@ -32,7 +36,7 @@
             };
 
             _auditContext.Add(coverAudit);
-            _auditContext.SaveChanges();
+            return _auditContext.SaveChangesAsync(cancellationToken);
         }
     }
 }
