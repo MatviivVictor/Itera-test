@@ -1,31 +1,53 @@
+using Claims.Application.Factories;
 using Claims.Application.Interfaces;
+using Claims.Application.Models;
+using Claims.Application.Validators;
 using Claims.Domain.Entities;
 using Claims.Domain.Interfaces;
+using FluentValidation;
 
 namespace Claims.Application.Services;
 
 public class ClaimsService : IClaimsService
 {
     private readonly IClaimsRepository _claimsRepository;
+    private readonly ICoversRepository _coversRepository;
     private readonly IAuditer _auditer;
 
-    public ClaimsService(IClaimsRepository claimsRepository, IAuditer auditer)
+    public ClaimsService(IClaimsRepository claimsRepository, IAuditer auditer, ICoversRepository coversRepository)
     {
         _claimsRepository = claimsRepository;
         _auditer = auditer;
+        _coversRepository = coversRepository;
     }
 
-    public Task<List<Claim>> GetClaimsAsync(CancellationToken cancellationToken)
+    public async Task<List<ClaimModel>> GetClaimsAsync(CancellationToken cancellationToken)
     {
-        return _claimsRepository.GetClaimsAsync(cancellationToken);
+        var claims = await _claimsRepository.GetClaimsAsync(cancellationToken);
+
+        return claims.Select(ClaimFactory.Create).ToList();
     }
 
-    public async Task<Claim> CreateClaimAsync(Claim claim, string post, CancellationToken cancellationToken)
+    public async Task<ClaimModel> CreateClaimAsync(CreateClaimRequestModel model, string post,
+        CancellationToken cancellationToken)
     {
-        claim.Id = Guid.CreateVersion7().ToString();
+        var claim = ClaimFactory.Create(model);
+        var cover = await _coversRepository.GetCoverAsync(claim.CoverId, cancellationToken);
+        ValidateClaimCreatedDate(cover, claim);
+
         await _claimsRepository.AddItemAsync(claim, cancellationToken);
         await _auditer.AuditClaim(claim.Id, "POST", cancellationToken);
-        return claim;
+        return ClaimFactory.Create(claim);
+    }
+
+    private static void ValidateClaimCreatedDate(Cover? cover, Claim claim)
+    {
+        var validator = new ClaimValidator(cover);
+        var validatorResult = validator.Validate(claim);
+        if (!validatorResult.IsValid)
+        {
+            throw new ValidationException(validatorResult.Errors);
+        }
     }
 
     public async Task RemoveClaimAsync(string id, CancellationToken cancellationToken)
@@ -37,8 +59,13 @@ public class ClaimsService : IClaimsService
         }
     }
 
-    public Task<Claim?> GetClaimAsync(string id, CancellationToken cancellationToken)
+    public async Task<ClaimModel?> GetClaimAsync(string id, CancellationToken cancellationToken)
     {
-        return _claimsRepository.GetClaimAsync(id, cancellationToken);
+        var claim = await _claimsRepository.GetClaimAsync(id, cancellationToken);
+        
+        if (claim is null)
+            return null;
+        
+        return ClaimFactory.Create(claim);
     }
 }

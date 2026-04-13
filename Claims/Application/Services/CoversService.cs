@@ -1,4 +1,6 @@
+using Claims.Application.Factories;
 using Claims.Application.Interfaces;
+using Claims.Application.Models;
 using Claims.Domain.Entities;
 using Claims.Domain.Interfaces;
 
@@ -9,30 +11,35 @@ public class CoversService : ICoversService
     private readonly ICoversRepository _coversRepository;
     private readonly IAuditer _auditer;
     Func<CoverType, IComputePremiumMultiplierStategy> _getStrategy;
-    public CoversService(ICoversRepository coversRepository, IAuditer auditer, Func<CoverType, IComputePremiumMultiplierStategy> getStrategy)
+
+    public CoversService(ICoversRepository coversRepository, IAuditer auditer,
+        Func<CoverType, IComputePremiumMultiplierStategy> getStrategy)
     {
         _coversRepository = coversRepository;
         _auditer = auditer;
         _getStrategy = getStrategy;
     }
 
-    public Task<List<Cover>> GetCoversAsync(CancellationToken cancellationToken)
+    public async Task<List<CoverModel>> GetCoversAsync(CancellationToken cancellationToken)
     {
-        return _coversRepository.GetCoversAsync(cancellationToken);
+        var covers = await _coversRepository.GetCoversAsync(cancellationToken);
+        return covers.Select(CoverFactory.Create).ToList();
     }
 
-    public Task<Cover?> GetCoverAsync(string id, CancellationToken cancellationToken)
+    public async Task<CoverModel?> GetCoverAsync(string id, CancellationToken cancellationToken)
     {
-        return _coversRepository.GetCoverAsync(id, cancellationToken);
+        var cover = await _coversRepository.GetCoverAsync(id, cancellationToken);
+        if (cover is null) return null;
+        return CoverFactory.Create(cover);
     }
 
-    public async Task<Cover> CreateCoverAsync(Cover cover, CancellationToken cancellationToken)
+    public async Task<CoverModel> CreateCoverAsync(CreateCoverRequestModel model, CancellationToken cancellationToken)
     {
-        cover.Id = Guid.CreateVersion7().ToString();
+        var cover = CoverFactory.Create(model);
         cover.Premium = ComputePremium(cover.StartDate, cover.EndDate, cover.Type);
         await _coversRepository.CreateCoverAsync(cover, cancellationToken);
         await _auditer.AuditCover(cover.Id, "POST", cancellationToken);
-        return cover;
+        return CoverFactory.Create(cover);
     }
 
     public async Task DeleteCoverAsync(string id, CancellationToken cancellationToken)
@@ -43,11 +50,11 @@ public class CoversService : ICoversService
             await _auditer.AuditCover(id, "DELETE", cancellationToken);
         }
     }
-    
+
     public decimal ComputePremium(DateTime startDate, DateTime endDate, CoverType coverType)
     {
         var strategy = _getStrategy(coverType);
-        
+
         var multiplier = strategy.GetMultiplier();
 
         var premiumPerDay = 1250 * multiplier;

@@ -11,7 +11,10 @@ namespace Claims.Domain.Entities
         public string CoverId { get; set; }
 
         [BsonElement("created")]
-        [BsonDateTimeOptions(DateOnly = true)]
+        // [BsonDateTimeOptions(DateOnly = true)]
+        /*
+         * In the MongoDB.EntityFrameworkCore provider, the [BsonDateTimeOptions(DateOnly = true)] attribute is not currently supported and will throw a NotSupportedException if used on a property mapped through the EF Core provider.
+         */
         public DateTime Created { get; set; }
 
         [BsonElement("name")]

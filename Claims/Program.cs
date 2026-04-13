@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
 using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
+using FluentValidation;
+using FluentValidation.AspNetCore;
 using Claims.Application.Factories;
 using Claims.Application.Interfaces;
 using Claims.Application.Services;
@@ -11,6 +13,7 @@ using Claims.Domain.Interfaces;
 using Claims.Infrastructure.Auditing;
 using Claims.Infrastructure.Database;
 using Claims.Infrastructure.Repositories;
+using Claims.API.Middleware;
 using Testcontainers.MongoDb;
 using Testcontainers.MsSql;
 
@@ -38,6 +41,24 @@ builder.Services
     {
         x.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
+
+builder.Services.AddFluentValidationAutoValidation();
+// Auto-validation 
+builder.Services.AddValidatorsFromAssemblyContaining<Program>(
+    ServiceLifetime.Scoped,
+    filter =>
+        filter.ValidatorType.Namespace != null &&
+        filter.ValidatorType.Namespace.StartsWith("Claims.API.Validators"));
+
+// manual validation
+builder.Services.AddValidatorsFromAssemblyContaining<Claims.Application.Validators.ClaimValidator>(
+    ServiceLifetime.Scoped,
+    filter =>
+        filter.ValidatorType.Namespace != null &&
+        filter.ValidatorType.Namespace.StartsWith("Claims.Application.Validators"));
+
+builder.Services.AddProblemDetails();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Services.AddDbContext<AuditContext>(options =>
     options.UseSqlServer(sqlContainer.GetConnectionString()));
@@ -76,6 +97,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseExceptionHandler();
 
 app.UseHttpsRedirection();
 
