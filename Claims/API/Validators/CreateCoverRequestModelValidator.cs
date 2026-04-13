@@ -14,7 +14,9 @@ public class CreateCoverRequestModelValidator : AbstractValidator<CreateCoverReq
 
         RuleFor(x => x)
             .Must(BeSameYear)
-            .WithMessage("Total insurance period cannot exceed 1 year.");
+            .WithMessage("Total insurance period cannot exceed 1 year.")
+            .Must(x => x.EndDate > x.StartDate)
+            .WithMessage("End date must be after start date.");
     }
 
     private bool BeSameYear(CreateCoverRequestModel model)
