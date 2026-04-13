@@ -1,42 +1,24 @@
-﻿using Claims.Auditing;
-using Claims.Domain.Interfaces;
-using Claims.Infrastructure.Database;
+﻿using Claims.Domain.Interfaces;
 
 namespace Claims.Infrastructure.Auditing
 {
     public class Auditer: IAuditer
     {
-        private readonly AuditContext _auditContext;
+        private readonly IAuditQueue _auditQueue;
 
-        public Auditer(AuditContext auditContext)
+        public Auditer(IAuditQueue auditQueue)
         {
-            _auditContext = auditContext;
+            _auditQueue = auditQueue;
         }
 
         public Task AuditClaim(string id, string httpRequestType, CancellationToken cancellationToken )
         {
-            var claimAudit = new ClaimAudit()
-            {
-                Created = DateTime.Now,
-                HttpRequestType = httpRequestType,
-                ClaimId = id
-            };
-
-            _auditContext.Add(claimAudit);
-            return _auditContext.SaveChangesAsync(cancellationToken);
+            return _auditQueue.EnqueueClaimAudit(id, httpRequestType).AsTask();
         }
         
         public Task AuditCover(string id, string httpRequestType, CancellationToken cancellationToken)
         {
-            var coverAudit = new CoverAudit()
-            {
-                Created = DateTime.Now,
-                HttpRequestType = httpRequestType,
-                CoverId = id
-            };
-
-            _auditContext.Add(coverAudit);
-            return _auditContext.SaveChangesAsync(cancellationToken);
+            return _auditQueue.EnqueueCoverAudit(id, httpRequestType).AsTask();
         }
     }
 }

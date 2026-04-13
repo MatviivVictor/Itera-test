@@ -85,6 +85,8 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddScoped<IClaimsRepository, ClaimsRepository>();
 builder.Services.AddScoped<IClaimsService, ClaimsService>();
 builder.Services.AddScoped<IAuditer, Auditer>();
+builder.Services.AddSingleton<IAuditQueue, AuditQueue>();
+builder.Services.AddHostedService<AuditBackgroundService>();
 builder.Services.AddScoped<ICoversRepository, CoversRepository>();
 builder.Services.AddScoped<ICoversService, CoversService>();
 builder.Services.AddScoped<Func<CoverType, IComputePremiumMultiplierStategy>>(_ => MultiplierStrategyFactory.GetStrategy);
