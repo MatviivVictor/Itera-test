@@ -1,3 +1,4 @@
+using Claims.Application.Extensions;
 using Claims.Application.Models;
 using FluentValidation;
 
@@ -8,11 +9,27 @@ public class CreateCoverRequestModelValidator : AbstractValidator<CreateCoverReq
     public CreateCoverRequestModelValidator()
     {
         RuleFor(x => x.StartDate)
-            .GreaterThanOrEqualTo(DateTime.Today)
+            .Must(CannotBeInPast)
             .WithMessage("Start date cannot be in the past.");
 
         RuleFor(x => x)
-            .Must(x => (x.EndDate - x.StartDate).TotalDays <= 365)
+            .Must(BeSameYear)
             .WithMessage("Total insurance period cannot exceed 1 year.");
+    }
+
+    private bool BeSameYear(CreateCoverRequestModel model)
+    {
+        var endDate = model.EndDate.Kind == DateTimeKind.Local ? model.EndDate.ToUniversalTime() : model.EndDate;
+        var startDate = model.StartDate.Kind == DateTimeKind.Local ? model.StartDate.ToUniversalTime() : model.StartDate;
+        return (endDate - startDate).TotalDays <=365;
+    }
+
+    private bool CannotBeInPast(DateTime startDate)
+    {
+        if (startDate.Kind == DateTimeKind.Local)
+        {
+            startDate = startDate.ToUniversalTime();
+        }
+        return startDate >= DateTimeExtensions.UtcToday();
     }
 }

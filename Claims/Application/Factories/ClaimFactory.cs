@@ -1,3 +1,4 @@
+using Claims.Application.Extensions;
 using Claims.Application.Models;
 using Claims.Domain.Entities;
 
@@ -19,7 +20,7 @@ public static class ClaimFactory
     {
         Id = Guid.CreateVersion7().ToString(),
         CoverId = model.CoverId,
-        Created = DateTime.UtcNow,
+        Created = model.Created.UtcDate(),
         Name = model.Name,
         Type = model.Type,
         DamageCost = model.DamageCost

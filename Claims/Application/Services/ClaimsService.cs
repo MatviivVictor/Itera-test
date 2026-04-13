@@ -33,16 +33,21 @@ public class ClaimsService : IClaimsService
     {
         var claim = ClaimFactory.Create(model);
         var cover = await _coversRepository.GetCoverAsync(claim.CoverId, cancellationToken);
+        ValidateClaimCreatedDate(cover, claim);
+
+        await _claimsRepository.AddItemAsync(claim, cancellationToken);
+        await _auditer.AuditClaim(claim.Id, "POST", cancellationToken);
+        return ClaimFactory.Create(claim);
+    }
+
+    private static void ValidateClaimCreatedDate(Cover? cover, Claim claim)
+    {
         var validator = new ClaimValidator(cover);
         var validatorResult = validator.Validate(claim);
         if (!validatorResult.IsValid)
         {
             throw new ValidationException(validatorResult.Errors);
         }
-
-        await _claimsRepository.AddItemAsync(claim, cancellationToken);
-        await _auditer.AuditClaim(claim.Id, "POST", cancellationToken);
-        return ClaimFactory.Create(claim);
     }
 
     public async Task RemoveClaimAsync(string id, CancellationToken cancellationToken)

@@ -1,3 +1,4 @@
+using Claims.Application.Extensions;
 using Claims.Application.Models;
 using Claims.Domain.Entities;
 
@@ -17,8 +18,8 @@ public static class CoverFactory
     public static Cover Create(CreateCoverRequestModel model) => new Cover
     {
         Id = Guid.CreateVersion7().ToString(),
-        StartDate = model.StartDate,
-        EndDate = model.EndDate,
+        StartDate = model.StartDate.UtcDate(),
+        EndDate = model.EndDate.UtcDate(),
         Type = model.Type,
     };
 }
