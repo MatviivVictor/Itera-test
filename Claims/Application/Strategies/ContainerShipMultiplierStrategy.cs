@@ -4,9 +4,9 @@ namespace Claims.Application.Strategies;
 
 public class ContainerShipMultiplierStrategy: ICoverTypeComputePremiumStategy
 {
-    public decimal GetExpenciveMultiplier()
+    public decimal GetExpensivePercentage()
     {
-        return 1.3m;
+        return 0.3m;
     }
 
     public decimal Get150DaysDiscount()

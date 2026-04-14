@@ -10,13 +10,20 @@ public class PremiumService : IPremiumService
     Func<CoverType, ICoverTypeComputePremiumStategy> _getStrategy;
     private readonly decimal _baseDayRate = 1250m;
 
+    /// <summary>
+    /// Computes the premium for a given cover period using the specified start date, end date, and cover type.
+    /// </summary>
+    /// <param name="startDate">The start date of the cover period.</param>
+    /// <param name="endDate">The end date of the cover period.</param>
+    /// <param name="coverType">The type of cover to calculate the premium for.</param>
+    /// <returns>The calculated premium for the specified cover period.</returns>
     public decimal ComputePremium(DateTime startDate, DateTime endDate, CoverType coverType)
     {
         endDate = endDate.Min(startDate.AddYears(1));
 
         var strategy = _getStrategy(coverType);
 
-        var dayRate = _baseDayRate * strategy.GetExpenciveMultiplier();
+        var dayRate = _baseDayRate + _baseDayRate * strategy.GetExpensivePercentage();
         var _150dayDiscount = strategy.Get150DaysDiscount();
         var remainingDaysDiscount = strategy.GetAdditionalDiscount();
         var coverPeriodDays = (endDate - startDate).Days;
@@ -30,6 +37,13 @@ public class PremiumService : IPremiumService
         return totalPremium;
     }
 
+    /// <summary>
+    /// Computes the premium for a cover period based on the given start date, end date, and cover type.
+    /// </summary>
+    /// <param name="startDate">The start date of the cover period.</param>
+    /// <param name="endDate">The end date of the cover period.</param>
+    /// <param name="coverType">The type of cover to calculate the premium for.</param>
+    /// <returns>The calculated premium for the cover period.</returns>
     public decimal ComputePremium(PremiumComputeRequestModel request)
     {
         return ComputePremium(request.StartDate, request.EndDate, request.Type);
