@@ -1,17 +1,7 @@
 using System.Threading.Channels;
+using Claims.Infrastructure.Auditing.Messages;
 
 namespace Claims.Infrastructure.Auditing;
-
-public interface IAuditQueue
-{
-    ValueTask EnqueueClaimAudit(string id, string httpRequestType);
-    ValueTask EnqueueCoverAudit(string id, string httpRequestType);
-    ChannelReader<AuditMessage> Reader { get; }
-}
-
-public abstract record AuditMessage;
-public record ClaimAuditMessage(string Id, string HttpRequestType, DateTime Created) : AuditMessage;
-public record CoverAuditMessage(string Id, string HttpRequestType, DateTime Created) : AuditMessage;
 
 public class AuditQueue : IAuditQueue
 {

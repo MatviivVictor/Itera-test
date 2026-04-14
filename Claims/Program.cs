@@ -21,10 +21,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Start Testcontainers for SQL Server and MongoDB
 var sqlContainer = (RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-        ? new MsSqlBuilder()
-            .WithImage("mcr.microsoft.com/mssql/server:2022-latest")
+        ? new MsSqlBuilder().WithImage("mcr.microsoft.com/mssql/server:2022-latest")
         : new()
-
     ).Build();
 
 var mongoContainer = new MongoDbBuilder()
@@ -43,6 +41,7 @@ builder.Services
     });
 
 builder.Services.AddFluentValidationAutoValidation();
+
 // Auto-validation 
 builder.Services.AddValidatorsFromAssemblyContaining<Program>(
     ServiceLifetime.Scoped,
