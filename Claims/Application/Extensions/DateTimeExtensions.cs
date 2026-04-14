@@ -15,4 +15,10 @@ public static class DateTimeExtensions
 
         return new DateTime(dateTimeUtc.Year, dateTimeUtc.Month, dateTimeUtc.Day, 0, 0, 0, DateTimeKind.Utc);
     }
+
+    public static DateTime Min(this DateTime baseDate, params DateTime[] dates)
+    {
+        return dates.Aggregate(baseDate, (current, date) => current < date ? current : date);
+    }
 }
+

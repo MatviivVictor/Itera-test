@@ -88,7 +88,8 @@ builder.Services.AddSingleton<IAuditQueue, AuditQueue>();
 builder.Services.AddHostedService<AuditBackgroundService>();
 builder.Services.AddScoped<ICoversRepository, CoversRepository>();
 builder.Services.AddScoped<ICoversService, CoversService>();
-builder.Services.AddScoped<Func<CoverType, IComputePremiumMultiplierStategy>>(_ => MultiplierStrategyFactory.GetStrategy);
+builder.Services.AddTransient<IPremiumService, PremiumService>();
+builder.Services.AddScoped<Func<CoverType, ICoverTypeComputePremiumStategy>>(_ => MultiplierStrategyFactory.GetStrategy);
 
 var app = builder.Build();
 

@@ -9,5 +9,4 @@ public interface ICoversService
     Task<CoverModel?> GetCoverAsync(string id, CancellationToken cancellationToken);
     Task<CoverModel> CreateCoverAsync(CreateCoverRequestModel model, CancellationToken cancellationToken);
     Task DeleteCoverAsync(string id, CancellationToken cancellationToken);
-    decimal ComputePremium(DateTime startDate, DateTime endDate, CoverType coverType);
 }
