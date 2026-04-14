@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Claims.Application.Extensions;
 using Claims.Application.Models;
 using Claims.Domain.Entities;
 using Claims.Infrastructure.Database;
@@ -32,7 +33,7 @@ namespace Claims.Tests
         public async Task CoversAndClaims_IntegrationWorkflow()
         {
             // 1. Create a Cover
-            var startDate = DateTime.UtcNow.Date.AddDays(1);
+            var startDate = DateTimeExtensions.UtcToday().AddDays(1);
             var endDate = startDate.AddDays(30);
             var createCoverModel = new CreateCoverRequestModel
             {
@@ -81,12 +82,6 @@ namespace Claims.Tests
             var fetchedClaim = await getClaimResponse.Content.ReadFromJsonAsync<ClaimModel>(_jsonOptions);
             Assert.Equal(createdClaim.Id, fetchedClaim?.Id);
 
-            // 6. Compute Premium (separate check)
-            var computeResponse = await _client.PostAsync($"/Covers/compute?startDate={startDate:O}&endDate={endDate:O}&coverType={CoverType.Yacht}", null);
-            computeResponse.EnsureSuccessStatusCode();
-            var premium = await computeResponse.Content.ReadFromJsonAsync<decimal>(_jsonOptions);
-            Assert.True(premium > 0);
-
             // 7. Delete Claim
             var deleteClaimResponse = await _client.DeleteAsync($"/Claims/{createdClaim.Id}");
             deleteClaimResponse.EnsureSuccessStatusCode();
@@ -127,8 +122,8 @@ namespace Claims.Tests
         {
             var createCoverModel = new CreateCoverRequestModel
             {
-                StartDate = DateTime.UtcNow.Date.AddDays(-1),
-                EndDate = DateTime.UtcNow.Date.AddDays(10),
+                StartDate = DateTimeExtensions.UtcToday().AddDays(-1),
+                EndDate = DateTimeExtensions.UtcToday().AddDays(10),
                 Type = CoverType.Yacht
             };
 
@@ -141,7 +136,7 @@ namespace Claims.Tests
         public async Task CreateClaim_ShouldReturnBadRequest_WhenOutsideCoverPeriod()
         {
             // 1. Create a Cover
-            var startDate = DateTime.UtcNow.Date.AddDays(1);
+            var startDate = DateTimeExtensions.UtcToday().AddDays(1);
             var endDate = startDate.AddDays(30);
             var createCoverModel = new CreateCoverRequestModel
             {
@@ -166,6 +161,23 @@ namespace Claims.Tests
             var claimResponse = await _client.PostAsJsonAsync("/Claims", createClaimModel);
             
             Assert.Equal(System.Net.HttpStatusCode.BadRequest, claimResponse.StatusCode);
+        }
+        
+        [Fact]
+        public async Task Premium_Compute_ShouldReturnCorrectValue()
+        {
+            var request = new Claims.Application.Models.PremiumComputeRequestModel
+            {
+                StartDate = DateTimeExtensions.UtcToday(),
+                EndDate = DateTimeExtensions.UtcToday().AddDays(25),
+                Type = CoverType.Yacht
+            };
+
+            var response = await _client.PostAsJsonAsync($"/Premium/compute", request);
+            response.EnsureSuccessStatusCode();
+            var premium = await response.Content.ReadFromJsonAsync<decimal>(_jsonOptions);
+
+            Assert.Equal(34375.0m, premium);
         }
     }
 }

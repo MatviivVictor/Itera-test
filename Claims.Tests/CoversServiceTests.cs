@@ -87,8 +87,8 @@ public class CoversServiceTests
         var premiumValue = 12345m;
         var model = new CreateCoverRequestModel
         {
-            StartDate = DateTime.UtcNow.Date,
-            EndDate = DateTime.UtcNow.Date.AddDays(10),
+            StartDate = DateTimeExtensions.UtcToday(),
+            EndDate = DateTimeExtensions.UtcToday().AddDays(10),
             Type = CoverType.Yacht
         };
         _premiumServiceMock.Setup(p => p.ComputePremium(It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<CoverType>())).Returns(premiumValue);

@@ -7,8 +7,13 @@ namespace Claims.Application.Services;
 
 public class PremiumService : IPremiumService
 {
-    Func<CoverType, ICoverTypeComputePremiumStategy> _getStrategy;
+    private readonly Func<CoverType, ICoverTypeComputePremiumStategy> _getStrategy;
     private readonly decimal _baseDayRate = 1250m;
+
+    public PremiumService(Func<CoverType, ICoverTypeComputePremiumStategy> getStrategy)
+    {
+        _getStrategy = getStrategy;
+    }
 
     /// <summary>
     /// Computes the premium for a given cover period using the specified start date, end date, and cover type.
