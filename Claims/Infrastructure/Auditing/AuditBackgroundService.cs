@@ -1,4 +1,5 @@
 using Claims.Auditing;
+using Claims.Infrastructure.Auditing.Messages;
 using Claims.Infrastructure.Database;
 using Microsoft.EntityFrameworkCore;
 
@@ -44,7 +45,7 @@ public class AuditBackgroundService : BackgroundService
                                 var existingClaimAudit = await dbContext.ClaimAudits.AnyAsync(
                                     x => x.ClaimId == claimMsg.Id && x.Created == claimMsg.Created &&
                                          x.HttpRequestType == claimMsg.HttpRequestType, stoppingToken);
-
+                                
                                 if (existingClaimAudit)
                                 {
                                     _logger.LogInformation(

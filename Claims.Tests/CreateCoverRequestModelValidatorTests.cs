@@ -56,4 +56,17 @@ public class CreateCoverRequestModelValidatorTests
         var result = _validator.TestValidate(model);
         result.ShouldNotHaveAnyValidationErrors();
     }
+    
+    [Fact]
+    public void Should_Have_Error_When_StartDate_After_EndDate()
+    {
+        var model = new CreateCoverRequestModel 
+        { 
+            StartDate = DateTimeExtensions.UtcToday().AddDays(3) , 
+            EndDate = DateTimeExtensions.UtcToday() 
+        };
+        var result = _validator.TestValidate(model);
+        result.ShouldHaveValidationErrorFor(x => x)
+            .WithErrorMessage("End date must be after start date.");
+    }
 }
