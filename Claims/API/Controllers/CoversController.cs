@@ -22,20 +22,6 @@ public class CoversController : ControllerBase
     }
 
     /// <summary>
-    /// Computes the insurance premium for a given cover type and time period.
-    /// </summary>
-    /// <param name="startDate">The start date of the coverage period.</param>
-    /// <param name="endDate">The end date of the coverage period.</param>
-    /// <param name="coverType">The type of cover for which the premium is being calculated.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains an <see cref="ActionResult"/> with the calculated premium.</returns>
-    [HttpPost("compute")]
-    public async Task<ActionResult<decimal>> ComputePremiumAsync(DateTime startDate, DateTime endDate,
-        CoverType coverType)
-    {
-        return Ok(_coversService.ComputePremium(startDate, endDate, coverType));
-    }
-
-    /// <summary>
     /// Retrieves the list of available covers asynchronously.
     /// </summary>
     /// <param name="cancellationToken">A token used to cancel the asynchronous operation.</param>

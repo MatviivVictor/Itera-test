@@ -6,7 +6,7 @@ namespace Claims.Application.Factories;
 
 public static class MultiplierStrategyFactory
 {
-    public static IComputePremiumMultiplierStategy GetStrategy(CoverType coverType)
+    public static ICoverTypeComputePremiumStategy GetStrategy(CoverType coverType)
     {
         return coverType switch
         {

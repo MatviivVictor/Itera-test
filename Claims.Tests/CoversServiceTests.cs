@@ -13,75 +13,18 @@ public class CoversServiceTests
 {
     private readonly Mock<ICoversRepository> _coversRepositoryMock;
     private readonly Mock<IAuditer> _auditerMock;
-    private readonly Mock<IComputePremiumMultiplierStategy> _strategyMock;
+    private readonly Mock<IPremiumService> _premiumServiceMock;
     private readonly CoversService _coversService;
 
     public CoversServiceTests()
     {
+        _premiumServiceMock = new Mock<IPremiumService>();
         _coversRepositoryMock = new Mock<ICoversRepository>();
         _auditerMock = new Mock<IAuditer>();
-        _strategyMock = new Mock<IComputePremiumMultiplierStategy>();
 
         _coversService = new CoversService(
             _coversRepositoryMock.Object,
-            _auditerMock.Object,
-            (coverType) => _strategyMock.Object);
-    }
-
-    [Theory]
-    [InlineData(CoverType.Yacht, 1.1, 1, 3946.25)] // 1375 + 1306.25 + 1265 = 3946.25
-    [InlineData(CoverType.PassengerShip, 1.2, 1, 4425.0)] // 1500 + 1470 + 1455 = 4425
-    [InlineData(CoverType.Tanker, 1.5, 1, 5531.25)] // 1875 + 1837.5 + 1818.75 = 5531.25
-    [InlineData(CoverType.ContainerShip, 1.3, 1, 4793.75)] // 1625 + 1592.5 + 1576.25 = 4793.75
-    public void ComputePremium_ShouldCalculateCorrectly_ForOneDay(CoverType type, decimal multiplier, int days,
-        decimal expected)
-    {
-        _strategyMock.Setup(s => s.GetMultiplier()).Returns(multiplier);
-        var startDate = DateTime.UtcNow.Date;
-        var endDate = startDate.AddDays(days);
-
-        var result = _coversService.ComputePremium(startDate, endDate, type);
-
-        Assert.Equal(expected, result);
-    }
-
-    [Fact]
-    public void ComputePremium_Yacht_35Days_CheckLogic()
-    {
-        // Yacht multiplier 1.1
-        // Day 0-29 (30 days): 1250 * 1.1 = 1375
-        // Day 30-34 (5 days): 
-        //   i < 180 && Yacht: 1375 - (1375 * 0.05) = 1375 - 68.75 = 1306.25
-        //   i < 365 && Yacht: 1306.25 (wait, the logic is additive?)
-
-        // Let's re-examine the logic:
-        /*
-        for (var i = 0; i < insuranceLength; i++)
-        {
-            if (i < 30) totalPremium += premiumPerDay;
-            if (i < 180 && coverType == CoverType.Yacht) totalPremium += premiumPerDay - premiumPerDay * 0.05m;
-            else if (i < 180) totalPremium += premiumPerDay - premiumPerDay * 0.02m;
-            if (i < 365 && coverType != CoverType.Yacht) totalPremium += premiumPerDay - premiumPerDay * 0.03m;
-            else if (i < 365) totalPremium += premiumPerDay - premiumPerDay * 0.08m;
-        }
-        */
-        // If i=0:
-        // totalPremium += 1375 (if < 30)
-        // totalPremium += 1375 - 68.75 = 1306.25 (if Yacht and < 180)
-        // totalPremium += 1375 - 110 = 1265 (if Yacht and < 365)
-        // Total for day 0 = 1375 + 1306.25 + 1265 = 3946.25? 
-        // This looks like a bug in the code or very strange premium calculation.
-        // Usually it should be 'if / else if'.
-
-        // Let's test what it CURRENTLY does.
-        _strategyMock.Setup(s => s.GetMultiplier()).Returns(1.1m);
-        var startDate = DateTime.UtcNow;
-        var endDate = startDate.AddDays(1);
-
-        var result = _coversService.ComputePremium(startDate, endDate, CoverType.Yacht);
-
-        // Day 0: 1375 + (1375 * 0.95) + (1375 * 0.92) = 1375 + 1306.25 + 1265 = 3946.25
-        Assert.Equal(3946.25m, result);
+            _auditerMock.Object, _premiumServiceMock.Object);
     }
 
     [Fact]
@@ -141,13 +84,14 @@ public class CoversServiceTests
     [Fact]
     public async Task CreateCoverAsync_ShouldCreateAndAudit()
     {
+        var premiumValue = 12345m;
         var model = new CreateCoverRequestModel
         {
-            StartDate = DateTime.UtcNow.Date,
-            EndDate = DateTime.UtcNow.Date.AddDays(10),
+            StartDate = DateTimeExtensions.UtcToday(),
+            EndDate = DateTimeExtensions.UtcToday().AddDays(10),
             Type = CoverType.Yacht
         };
-        _strategyMock.Setup(s => s.GetMultiplier()).Returns(1.1m);
+        _premiumServiceMock.Setup(p => p.ComputePremium(It.IsAny<DateTime>(), It.IsAny<DateTime>(), It.IsAny<CoverType>())).Returns(premiumValue);
 
         var result = await _coversService.CreateCoverAsync(model, CancellationToken.None);
 
@@ -155,9 +99,11 @@ public class CoversServiceTests
         _coversRepositoryMock.Verify(r => r.CreateCoverAsync(It.IsAny<Cover>(), It.IsAny<CancellationToken>()),
             Times.Once);
         _auditerMock.Verify(a => a.AuditCover(It.IsAny<string>(), "POST", It.IsAny<CancellationToken>()), Times.Once);
-
+        _premiumServiceMock.Verify(p => p.ComputePremium(model.StartDate, model.EndDate, model.Type), Times.Once);
+        
         Assert.Equal(CoverType.Yacht, result.Type);
         Assert.NotEmpty(result.Id);
+        Assert.Equal(premiumValue, result.Premium);
     }
 
     [Fact]

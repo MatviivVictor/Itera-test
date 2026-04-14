@@ -3,7 +3,7 @@ using Claims.Domain.Entities;
 
 namespace Claims.Application.Models;
 
-public class CreateCoverRequestModel : ICoverPeriod
+public class PremiumComputeRequestModel : ICoverPeriod
 {
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }

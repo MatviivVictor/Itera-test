@@ -2,10 +2,20 @@ using Claims.Application.Interfaces;
 
 namespace Claims.Application.Strategies;
 
-public class YachtMultiplierStrategy: IComputePremiumMultiplierStategy
+public class YachtMultiplierStrategy: ICoverTypeComputePremiumStategy
 {
-    public decimal GetMultiplier()
+    public decimal GetExpensivePercentage()
     {
-        return 1.1m;
+        return 0.1m;
+    }
+
+    public decimal Get150DaysDiscount()
+    {
+        return 0.05m;
+    }
+
+    public decimal GetAdditionalDiscount()
+    {
+        return 0.03m;
     }
 }
