@@ -1,5 +1,4 @@
 using Claims.Application.Models;
-using Claims.Domain.Entities;
 
 namespace Claims.Application.Interfaces;
 

@@ -1,7 +1,6 @@
 using Claims.Application.Factories;
 using Claims.Application.Interfaces;
 using Claims.Application.Models;
-using Claims.Domain.Entities;
 using Claims.Domain.Interfaces;
 
 namespace Claims.Application.Services;

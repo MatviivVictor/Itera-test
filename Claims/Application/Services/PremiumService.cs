@@ -1,4 +1,3 @@
-using Claims.Application.Extensions;
 using Claims.Application.Interfaces;
 using Claims.Application.Models;
 using Claims.Domain.Entities;
@@ -24,8 +23,6 @@ public class PremiumService : IPremiumService
     /// <returns>The calculated premium for the specified cover period.</returns>
     public decimal ComputePremium(DateTime startDate, DateTime endDate, CoverType coverType)
     {
-        endDate = endDate.Min(startDate.AddYears(1));
-
         var strategy = _getStrategy(coverType);
 
         var dayRate = _baseDayRate + _baseDayRate * strategy.GetExpensivePercentage();

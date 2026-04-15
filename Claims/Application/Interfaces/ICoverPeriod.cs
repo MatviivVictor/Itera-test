@@ -1,5 +1,3 @@
-using Claims.Domain.Entities;
-
 namespace Claims.Application.Interfaces;
 
 public interface ICoverPeriod

@@ -1,6 +1,5 @@
 using Claims.Application.Interfaces;
 using Claims.Application.Models;
-using Claims.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Claims.API.Controllers;
@@ -12,9 +11,6 @@ public class CoversController : ControllerBase
     private readonly ILogger<CoversController> _logger;
     private readonly ICoversService _coversService;
 
-    /// <summary>
-    /// This controller provides endpoints for managing Covers and calculating premiums.
-    /// </summary>
     public CoversController(ILogger<CoversController> logger, ICoversService coversService)
     {
         _logger = logger;
