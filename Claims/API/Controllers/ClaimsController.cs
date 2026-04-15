@@ -1,7 +1,5 @@
 using Claims.Application.Interfaces;
 using Claims.Application.Models;
-using Claims.Domain.Entities;
-using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Claims.API.Controllers
@@ -25,20 +23,21 @@ namespace Claims.API.Controllers
         /// <param name="cancellationToken">A token to cancel the operation if needed.</param>
         /// <returns>A task representing the asynchronous operation. The task result contains an action result wrapping an enumerable of Claim objects.</returns>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Claim>>> GetAsync(CancellationToken cancellationToken)
+        public async Task<ActionResult<IEnumerable<ClaimModel>>> GetAsync(CancellationToken cancellationToken)
         {
             var claims = await _claimsService.GetClaimsAsync(cancellationToken);
             return Ok(claims);
         }
 
         /// <summary>
-        /// Creates a new claim.
+        /// Creates a new claim based on the provided request model.
         /// </summary>
-        /// <param name="claim">The claim object to be created.</param>
+        /// <param name="model">The request model containing data required to create a new claim.</param>
         /// <param name="cancellationToken">A token to cancel the operation if needed.</param>
         /// <returns>A task representing the asynchronous operation. The task result contains an action result wrapping the created Claim object.</returns>
         [HttpPost]
-        public async Task<ActionResult<Claim>> CreateAsync([FromBody] CreateClaimRequestModel model, CancellationToken cancellationToken)
+        public async Task<ActionResult<ClaimModel>> CreateAsync([FromBody] CreateClaimRequestModel model,
+            CancellationToken cancellationToken)
         {
             var claim = await _claimsService.CreateClaimAsync(model, "POST", cancellationToken);
             return Ok(claim);

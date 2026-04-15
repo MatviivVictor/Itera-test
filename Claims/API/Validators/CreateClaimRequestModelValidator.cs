@@ -14,6 +14,7 @@ public class CreateClaimRequestModelValidator : AbstractValidator<CreateClaimReq
         RuleFor(x => x.Type).IsInEnum().WithMessage("Invalid claim type.");
 
         RuleFor(x => x.DamageCost)
+            .GreaterThanOrEqualTo(0).WithMessage("Damage cost cannot be negative.")
             .LessThanOrEqualTo(100000)
             .WithMessage("Damage cost cannot exceed 100,000.");
     }

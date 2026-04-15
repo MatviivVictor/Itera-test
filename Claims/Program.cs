@@ -73,7 +73,7 @@ builder.Services.AddDbContext<ClaimsContext>(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new() { Title = "Claims.Api", Version = "v1" });
+    options.SwaggerDoc("v1", new() { Title = "Claims.Api", Version = "v1", Description = "Solution to solve Tasks for the technical interview by Matviiv Victor"});
     options.UseInlineDefinitionsForEnums();
     
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
