@@ -35,6 +35,10 @@ public class AuditBackgroundService : BackgroundService
                 {
                     try
                     {
+                        // dbContext is created in the loop body intentionally.
+                        // this ensures the Resilience principle 
+                        // Isolation dbContext from such messages and retrying (especially for retry)
+                        // and provided Scoped Service Lifetime for dbContext (Scope-per-Attempt)
                         using var scope = _serviceProvider.CreateScope();
                         var dbContext = scope.ServiceProvider.GetRequiredService<AuditContext>();
 
